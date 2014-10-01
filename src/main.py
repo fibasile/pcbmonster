@@ -8,6 +8,19 @@ import time
 app = None
 stack = None
 window = None    
+controller = None
+
+
+class Controller():
+    
+    def moveUp(self):
+        print 'move up'
+        
+    def moveDown(self):
+        print 'move down'
+        
+    
+        
     
 class SplashScreen(QtGui.QSplashScreen):
     
@@ -124,6 +137,7 @@ class ControlPanel(GenericPanel):
         self.show()
         
     def initUI(self):
+        global controller
         GenericPanel.initUI(self)
         self.x_label = QtGui.QLabel(self)
         self.x_label.setGeometry(120,12,80,30)
@@ -137,6 +151,14 @@ class ControlPanel(GenericPanel):
         self.z_label.setGeometry(250,12,80,30)
         self.z_label.setText("0.000")
         self.z_label.show()
+        topButton = PicButton('./gfx/trasp2.png',self)
+        topButton.setGeometry(70,62,35,35)
+        topButton.clicked.connect(controller.moveUp)
+        topButton.show()
+        bottomButton= PicButton('./gfx/trasp2.png',self)
+        bottomButton.setGeometry(70,170,35,35)
+        bottomButton.clicked.connect(controller.moveDown)
+        bottomButton.show()
 
 
 
@@ -194,12 +216,12 @@ class MainPanel(GenericPanel):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-
+    controller = Controller()
     splash = SplashScreen()
     window = QtGui.QWidget()
     window.setGeometry(0,0,320,240)
     stack = StackedWidget(window)
-    
+
 
     
 
