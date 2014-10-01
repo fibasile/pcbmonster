@@ -19,7 +19,17 @@ class Controller():
     def moveDown(self):
         print 'move down'
         
-    
+    def moveLeft(self):
+        print 'move left'
+        
+    def moveRight(self):
+        print 'move right'
+        
+    def moveTop(self):
+        print 'move top'
+        
+    def moveBottom(self):
+        print 'move bottom'
         
     
 class SplashScreen(QtGui.QSplashScreen):
@@ -35,17 +45,19 @@ class SplashScreen(QtGui.QSplashScreen):
         self.show()
 
 class PicButton(QtGui.QAbstractButton):
-    def __init__(self, pixmap_path, parent=None):
+    def __init__(self, pixmap_path, parent=None,transparent=False):
         super(PicButton, self).__init__(parent)
         self.pixmap = QtGui.QPixmap(pixmap_path)
         self.icon = QtGui.QIcon(self.pixmap)
+        self.transparent=transparent
+        self.setStyleSheet("background: transparent; border: none")
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
         state = QtGui.QIcon.Normal
         if self.isDown():
             state = QtGui.QIcon.Selected
-        px = self.icon.pixmap(event.rect().size(), state, QtGui.QIcon.On) 
+        px = self.icon.pixmap(event.rect().size(), state, QtGui.QIcon.On)
         painter.drawPixmap(event.rect(), px)
 
     def sizeHint(self):
@@ -151,15 +163,43 @@ class ControlPanel(GenericPanel):
         self.z_label.setGeometry(250,12,80,30)
         self.z_label.setText("0.000")
         self.z_label.show()
-        topButton = PicButton('./gfx/trasp2.png',self)
-        topButton.setGeometry(70,62,35,35)
-        topButton.clicked.connect(controller.moveUp)
+        topButton = QtGui.QPushButton('',self)
+        topButton.setIcon(QtGui.QIcon('./gfx/top.png'))
+        topButton.setStyleSheet("background: rgb(241,90,36); border:none")
+        topButton.setGeometry(70,72,35,35)
+        topButton.clicked.connect(controller.moveTop)
         topButton.show()
-        bottomButton= PicButton('./gfx/trasp2.png',self)
-        bottomButton.setGeometry(70,170,35,35)
-        bottomButton.clicked.connect(controller.moveDown)
+        bottomButton= QtGui.QPushButton('',self)
+        bottomButton.setIcon(QtGui.QIcon('./gfx/bottom.png'))
+        bottomButton.setGeometry(70,160,35,35)
+        bottomButton.setStyleSheet("background: rgb(241,90,36); border:none")
+        bottomButton.clicked.connect(controller.moveBottom)
         bottomButton.show()
-
+        leftButton=QtGui.QPushButton('',self)
+        leftButton.setIcon(QtGui.QIcon('./gfx/left.png'))
+        leftButton.setStyleSheet("background: rgb(241,90,36); border:none")
+        leftButton.setGeometry(27,114,35,35)
+        leftButton.clicked.connect(controller.moveLeft)
+        leftButton.show()
+        rightButton=QtGui.QPushButton('',self)
+        rightButton.setIcon(QtGui.QIcon('./gfx/right.png'))
+        rightButton.setStyleSheet("background: rgb(241,90,36); border:none")
+        rightButton.setGeometry(117,114,35,35)
+        rightButton.clicked.connect(controller.moveRight)
+        rightButton.show()
+        upButton=QtGui.QPushButton('',self)
+        upButton.setIcon(QtGui.QIcon('./gfx/top.png'))
+        upButton.setStyleSheet("background: rgb(241,90,36); border:none")
+        upButton.setGeometry(205,72,35,35)
+        upButton.clicked.connect(controller.moveUp)
+        upButton.show()
+        downButton=QtGui.QPushButton('',self)
+        downButton.setIcon(QtGui.QIcon('./gfx/bottom.png'))
+        downButton.setStyleSheet("background: rgb(241,90,36); border:none")
+        downButton.setGeometry(205,160,35,35)
+        downButton.clicked.connect(controller.moveDown)
+        downButton.show()
+        
 
 
 
