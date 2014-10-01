@@ -74,7 +74,11 @@ class StackedWidget(QtGui.QStackedWidget):
 
     def __init__(self, parent = None):
         QtGui.QStackedWidget.__init__(self, parent)
-    
+        self.pages = ['main','newboard','control', 'settings', 'extras', 'library', 'extras', 'power']
+        self.widgets = [ MainPanel(), GenericPanel(),ControlPanel(),GenericPanel(),GenericPanel(),GenericPanel(),GenericPanel(),GenericPanel() ]
+        for w in self.widgets:
+            self.addWidget(w)
+
     def setCurrentIndex(self, index):
         self.fader_widget = FaderWidget(self.currentWidget(), self.widget(index))
         QtGui.QStackedWidget.setCurrentIndex(self, index)
@@ -82,15 +86,16 @@ class StackedWidget(QtGui.QStackedWidget):
     def showMainPage(self):
         self.setCurrentIndex(0)
     
-    def showExtrasPage(self):
-        self.setCurrentIndex(1)
+    def showPage(self,pagename):
+        i = self.pages.index(pagename)
+        self.setCurrentIndex(i)
         
         
 class GenericPanel(QtGui.QWidget):
     def __init__(self):
         super(GenericPanel, self).__init__()
         self.initBG()
-
+        self.initUI()
 
     def paintEvent(self, event): 
         painter = QtGui.QPainter(self)
@@ -102,6 +107,37 @@ class GenericPanel(QtGui.QWidget):
         self.pixmap = QtGui.QPixmap("./gfx/menubg.png")
         self.show()
         
+    def initUI(self):
+        backButton = PicButton('./gfx/btn_back.png',self)
+        backButton.setGeometry(5,5,87,46)
+        backButton.clicked.connect(self.goBack)
+        backButton.show()
+        
+    def goBack(self):
+        stack.showMainPage()
+
+
+class ControlPanel(GenericPanel):
+    def initBG(self):
+        self.setGeometry(0,0,320,240)
+        self.pixmap = QtGui.QPixmap("./gfx/control_bg.png")
+        self.show()
+        
+    def initUI(self):
+        GenericPanel.initUI(self)
+        self.x_label = QtGui.QLabel(self)
+        self.x_label.setGeometry(120,12,80,30)
+        self.x_label.setText("0.000")
+        self.x_label.show()
+        self.y_label = QtGui.QLabel(self)
+        self.y_label.setGeometry(186,12,80,30)
+        self.y_label.setText("0.000")
+        self.y_label.show()
+        self.z_label = QtGui.QLabel(self)
+        self.z_label.setGeometry(250,12,80,30)
+        self.z_label.setText("0.000")
+        self.z_label.show()
+
 
 
 
@@ -111,19 +147,38 @@ class MainPanel(GenericPanel):
         self.initUI()
 
     def extrasClicked(self):
-        print 'extras clicked!'
-        stack.showExtrasPage()
+        stack.showPage('extras')
     
+    def newboardClicked(self):
+        stack.showPage('newboard')
+
+    def settingsClicked(self):
+        stack.showPage('settings')
+        
+    def libraryClicked(self):
+        stack.showPage('library')
+        
+    def powerClicked(self):
+        stack.showPage('power')
+
+    def controlClicked(self):
+        stack.showPage('control')
+        
 
     def initUI(self):
         layout = QtGui.QGridLayout()
         newBoardButton = PicButton('./gfx/btn_new_board.png')
+        newBoardButton.clicked.connect(self.newboardClicked)
         controlButton = PicButton('./gfx/btn_control.png')
+        controlButton.clicked.connect(self.controlClicked)
         settingsButton = PicButton('./gfx/btn_settings.png')
-        libraryButton = PicButton('./gfx/btn_library.png')        
+        settingsButton.clicked.connect(self.settingsClicked)
+        libraryButton = PicButton('./gfx/btn_library.png')
+        libraryButton.clicked.connect(self.libraryClicked)        
         extrasButton = PicButton('./gfx/btn_extras.png')
         extrasButton.clicked.connect(self.extrasClicked)
         powerButton = PicButton('./gfx/btn_power.png')
+        powerButton.clicked.connect(self.powerClicked)
         layout.addWidget(newBoardButton,0,0)
         layout.addWidget(controlButton,0,1)
         layout.addWidget(settingsButton,0,2)
@@ -145,11 +200,7 @@ if __name__ == '__main__':
     window.setGeometry(0,0,320,240)
     stack = StackedWidget(window)
     
-    m = MainPanel()
-    stack.addWidget(m)
-    
-    e = GenericPanel()
-    stack.addWidget(e)
+
     
 
     
