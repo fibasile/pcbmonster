@@ -1,37 +1,29 @@
-#!/usr/local/bin/python
+
 import sys
 sys.path.append('/usr/local/lib/python2.7/site-packages')
 from PyQt4 import QtGui, QtCore
 import time
-
+import os
 
 app = None
 stack = None
 window = None    
-controller = None
+machine = None 
+
+class Machine():
+    def __init__(self):
+        self.x=0
+        self.y=0
+        self.z=0
+        self.serial='/dev/usb/lp0'
+        self.move()
+
+    def move(self):
+        os.system('./rml_move_z.sh %s %s %s %s' % (self.x,self.y,self.z,self.serial))
 
 
-class Controller():
     
-    def moveUp(self):
-        print 'move up'
-        
-    def moveDown(self):
-        print 'move down'
-        
-    def moveLeft(self):
-        print 'move left'
-        
-    def moveRight(self):
-        print 'move right'
-        
-    def moveTop(self):
-        print 'move top'
-        
-    def moveBottom(self):
-        print 'move bottom'
-        
-    
+   
 class SplashScreen(QtGui.QSplashScreen):
     
     def __init__(self):
@@ -50,7 +42,7 @@ class PicButton(QtGui.QAbstractButton):
         self.pixmap = QtGui.QPixmap(pixmap_path)
         self.icon = QtGui.QIcon(self.pixmap)
         self.transparent=transparent
-        self.setStyleSheet("background: transparent; border: none")
+        #self.setStyleSheet("background: transparent; border: none")
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
@@ -99,8 +91,9 @@ class StackedWidget(QtGui.QStackedWidget):
 
     def __init__(self, parent = None):
         QtGui.QStackedWidget.__init__(self, parent)
+        controlPanel = ControlPanel()
         self.pages = ['main','newboard','control', 'settings', 'extras', 'library', 'extras', 'power']
-        self.widgets = [ MainPanel(), GenericPanel(),ControlPanel(),GenericPanel(),GenericPanel(),GenericPanel(),GenericPanel(),GenericPanel() ]
+        self.widgets = [ MainPanel(), GenericPanel(),controlPanel,GenericPanel(),GenericPanel(),GenericPanel(),GenericPanel(),GenericPanel() ]
         for w in self.widgets:
             self.addWidget(w)
 
@@ -119,16 +112,21 @@ class StackedWidget(QtGui.QStackedWidget):
 class GenericPanel(QtGui.QWidget):
     def __init__(self):
         super(GenericPanel, self).__init__()
+        self.pixmap = None
         self.initBG()
         self.initUI()
 
     def paintEvent(self, event): 
+        QtGui.QWidget.paintEvent(self,event)
+        if not self.pixmap:
+           return
         painter = QtGui.QPainter(self)
         # self.setMask(pixmap.mask())
         painter.drawPixmap(event.rect(), self.pixmap)
 
     def initBG(self):
         self.setGeometry(0,0,320,240)
+        self.setStyleSheet('background-color: white')
         self.pixmap = QtGui.QPixmap("./gfx/menubg.png")
         self.show()
         
@@ -145,9 +143,57 @@ class GenericPanel(QtGui.QWidget):
 class ControlPanel(GenericPanel):
     def initBG(self):
         self.setGeometry(0,0,320,240)
-        self.pixmap = QtGui.QPixmap("./gfx/control_bg.png")
+        #self.pixmap = QtGui.QPixmap("./gfx/control_bg.png")
+        self.setStyleSheet("background: white;") 
         self.show()
+    
+    def refreshGUI(self):
+        self.x_label.setText('%.3f' % machine.x)
+        self.y_label.setText('%.3f' % machine.y)
+        self.z_label.setText('%.3f' % machine.z)
+ 
+    def moveUp(self):
+        print 'move up'
+        if machine.y < 200:
+           machine.y += 5
+        machine.move()
+        self.refreshGUI()
         
+    def moveDown(self):
+        print 'move down'
+        if machine.y > 0:
+           machine.y -= 5        
+	machine.move()
+        self.refreshGUI()
+
+    def moveLeft(self):
+        print 'move left'
+        if machine.x > 0:
+           machine.x -= 5
+        machine.move()
+        self.refreshGUI()
+
+    def moveRight(self):
+        print 'move right'
+        if machine.x < 200:
+	   machine.x += 5
+        machine.move()        
+        self.refreshGUI()
+
+    def moveTop(self):
+        print 'move top'
+        if machine.z < 400:
+           machine.z += 1
+        machine.move()
+        self.refreshGUI()
+        
+    def moveBottom(self):
+        print 'move bottom'
+        if machine.z > 0:
+           machine.z -= 1
+        machine.move()
+        self.refreshGUI()
+
     def initUI(self):
         global controller
         GenericPanel.initUI(self)
@@ -167,37 +213,37 @@ class ControlPanel(GenericPanel):
         topButton.setIcon(QtGui.QIcon('./gfx/top.png'))
         topButton.setStyleSheet("background: rgb(241,90,36); border:none")
         topButton.setGeometry(70,72,35,35)
-        topButton.clicked.connect(controller.moveTop)
+        topButton.clicked.connect(self.moveUp)
         topButton.show()
         bottomButton= QtGui.QPushButton('',self)
         bottomButton.setIcon(QtGui.QIcon('./gfx/bottom.png'))
-        bottomButton.setGeometry(70,160,35,35)
+        bottomButton.setGeometry(70,165,35,35)
         bottomButton.setStyleSheet("background: rgb(241,90,36); border:none")
-        bottomButton.clicked.connect(controller.moveBottom)
+        bottomButton.clicked.connect(self.moveDown)
         bottomButton.show()
         leftButton=QtGui.QPushButton('',self)
         leftButton.setIcon(QtGui.QIcon('./gfx/left.png'))
         leftButton.setStyleSheet("background: rgb(241,90,36); border:none")
-        leftButton.setGeometry(27,114,35,35)
-        leftButton.clicked.connect(controller.moveLeft)
+        leftButton.setGeometry(27,118,35,35)
+        leftButton.clicked.connect(self.moveLeft)
         leftButton.show()
         rightButton=QtGui.QPushButton('',self)
         rightButton.setIcon(QtGui.QIcon('./gfx/right.png'))
         rightButton.setStyleSheet("background: rgb(241,90,36); border:none")
-        rightButton.setGeometry(117,114,35,35)
-        rightButton.clicked.connect(controller.moveRight)
+        rightButton.setGeometry(117,118,35,35)
+        rightButton.clicked.connect(self.moveRight)
         rightButton.show()
         upButton=QtGui.QPushButton('',self)
         upButton.setIcon(QtGui.QIcon('./gfx/top.png'))
         upButton.setStyleSheet("background: rgb(241,90,36); border:none")
         upButton.setGeometry(205,72,35,35)
-        upButton.clicked.connect(controller.moveUp)
+        upButton.clicked.connect(self.moveTop)
         upButton.show()
         downButton=QtGui.QPushButton('',self)
         downButton.setIcon(QtGui.QIcon('./gfx/bottom.png'))
         downButton.setStyleSheet("background: rgb(241,90,36); border:none")
-        downButton.setGeometry(205,160,35,35)
-        downButton.clicked.connect(controller.moveDown)
+        downButton.setGeometry(205,165,35,35)
+        downButton.clicked.connect(self.moveBottom)
         downButton.show()
         
 
@@ -256,12 +302,12 @@ class MainPanel(GenericPanel):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    controller = Controller()
+    machine = Machine()
     splash = SplashScreen()
     window = QtGui.QWidget()
     window.setGeometry(0,0,320,240)
     stack = StackedWidget(window)
-
+    stack.resize(320,240)
 
     
 
